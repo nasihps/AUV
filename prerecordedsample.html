@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Recognition</title>
+    <script src="https://unpkg.com/@tensorflow/tfjs@0.10.3"></script>
+    <script src="https://unpkg.com/@tensorflow-models/mobilenet@0.0.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: "Helvetica", Arial, sans-serif;
+            font-size: 16px;
+            margin: 0;
+            padding: 0;
+            background-image: url('images/bagr.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 80%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.8); /* Background color with opacity */
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Box shadow for the container */
+        }
+
+        #video-container {
+            flex: 1;
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #chart-container {
+            flex: 1;
+            max-width: 50%;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        #chart {
+            width: 100%;
+            height: 200px;
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 15px;
+        }
+
+        div {
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        pre {
+            font-size: 14px;
+        }
+        #most-probable-prediction{
+            font-size: 24px;
+
+        }
+
+    </style>
+</head>
+
+<body onload="setup()">
+    <div class="container">
+        <div id="video-container">
+            <h1>What's in the video?</h1>
+            <input type="file" accept="video/*" id="video-input" onchange="handleFileSelect(event)">
+            <video id="video" style="border-radius: 15px;" controls></video>
+            <pre id="predictions"></pre>
+            <canvas id="canvas" style="display: none"></canvas>
+            <div id="most-probable-prediction"></div>
+        </div>
+
+        <div id="chart-container">
+            <canvas id="chart" height="200"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let video;
+        let canvas;
+        let predictionsText;
+        let model;
+        let chart;
+
+        async function setup() {
+            try {
+                console.log("TensorFlow.js and MobileNet are being loaded...");
+
+                video = document.getElementById("video");
+                canvas = document.getElementById("canvas");
+                predictionsText = document.getElementById("predictions");
+
+                model = await mobilenet.load();
+
+                document.getElementById("video-input").addEventListener("change", handleFileSelect);
+
+            } catch (error) {
+                console.error("Error during setup:", error);
+            }
+        }
+
+        function handleFileSelect(event) {
+            try {
+                let file = event.target.files[0];
+                console.log("Selected video file:", file);
+
+                if (file) {
+                    video.src = URL.createObjectURL(file);
+                    video.style.display = "block";
+                    video.addEventListener("loadedmetadata", () => {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        classifyVideoFrames();
+                    });
+
+                    video.load(); // Explicitly load the video
+                }
+            } catch (error) {
+                console.error("Error handling file select:", error);
+            }
+        }
+
+        function classifyVideoFrames() {
+            let context = canvas.getContext("2d");
+            const fps = 1;
+
+            setInterval(() => {
+                try {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    classifyImage();
+                } catch (error) {
+                    console.error("Error drawing frames:", error);
+                }
+            }, 1000 / fps);
+        }
+
+        async function classifyImage() {
+            try {
+                let predictions = await model.classify(canvas);
+                displayPredictions(predictions);
+            } catch (error) {
+                console.error("Error classifying image:", error);
+            }
+        }
+
+        function displayPredictions(predictions) {
+            try {
+                let outputString = "";
+                let labels = [];
+                let data = [];
+                let groupedPredictions = {};
+                let mostProbablePrediction = null;
+
+                // Group predictions by probability and find the most probable prediction
+                predictions.forEach(prediction => {
+                    const percent = (prediction.probability * 100).toFixed(2);
+                    const label = prediction.className;
+
+                    if (!groupedPredictions[percent]) {
+                        groupedPredictions[percent] = [];
+                    }
+
+                    groupedPredictions[percent].push(label);
+
+                    // Check for the most probable prediction
+                    if (!mostProbablePrediction || prediction.probability > mostProbablePrediction.probability) {
+                        mostProbablePrediction = prediction;
+                    }
+                });
+
+                // Display the most probable prediction separately
+                if (mostProbablePrediction) {
+                    document.getElementById("most-probable-prediction").textContent = `Probable object: ${mostProbablePrediction.className}`;
+                }
+
+                // Display predictions with grouped names
+                Object.keys(groupedPredictions).forEach(percent => {
+                    const label = groupedPredictions[percent].join(', '); // Concatenate names
+                    outputString += `${percent}% | ${label}\n`;
+                    labels.push(label);
+                    data.push(parseFloat(percent));
+                });
+
+                predictionsText.innerHTML = outputString;
+
+                if (chart) {
+                    chart.data.labels = labels;
+                    chart.data.datasets[0].data = data;
+                    chart.update();
+                } else {
+                    chart = new Chart(document.getElementById("chart"), {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Probability',
+                                data: data,
+                                backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Probability (%)'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Class Name'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error displaying predictions:", error);
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live detection</title>
+    <script src="https://unpkg.com/@tensorflow/tfjs@0.10.3"></script>
+    <script src="https://unpkg.com/@tensorflow-models/mobilenet@0.0.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: "Helvetica", Arial, sans-serif;
+            font-size: 16px;
+            background-color: #003366;
+            background: #0d0000; /* Light gray background */
+            color: #333; /* Dark text color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 80%; /* Adjust the width as needed */
+            background: rgb(7, 0, 0);
+        }
+
+        #video-container {
+            flex: 1;
+            border-radius: 15px; /* Adjust the border-radius value as needed */
+            overflow: hidden; 
+            background: rgb(255, 255, 255);
+            margin-right: 20px;
+        }
+        #chart-container {
+            flex: 1;
+            max-width: 50%;
+            padding-left: 20px;
+            background: #ffffff;
+        }
+
+        #chart {
+            width: 100%;
+            height: 200px; /* Set a fixed height for the chart */
+        }
+
+        #video {
+            width: 640px;
+            height: 480px;
+            max-width: 100%;
+            border-radius: 15px; /* Adjust the border-radius value as needed */
+        }
+
+
+        div {
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        pre {
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #007BFF; /* Blue button color */
+            color: #fff; /* White text color */
+            border: none;
+            border-radius: 5px;
+        }
+        
+    </style>
+</head>
+<body onload="setup()">
+    <div class="container">
+        <div id="video-container">
+            <h1>Live video input detection algorithm</h1>
+            <video id="video" width="640" height="480" style="max-width: 100%; border-radius: 15px;"></video>
+            <pre id="predictions"></pre>
+            <canvas id="canvas" style="display: none"></canvas>
+            <div id="most-probable-prediction"></div>
+            
+        </div>
+        
+        <div id="chart-container">
+            <canvas id="chart" height="200"></canvas>
+        </div>
+        
+    </div>
+
+    <script>
+        // Your existing JavaScript code remains unchanged
+        function setup() {
+            let video = document.getElementById("video");
+            let canvas = document.getElementById("canvas");
+            let predictionsText = document.getElementById("predictions");
+            let model = null;
+            let chart;
+
+            main();
+
+            async function main() {
+                model = await mobilenet.load();
+                await startCamera();
+            }
+
+            async function startCamera() {
+                let stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                });
+                video.srcObject = stream;
+                await video.play();
+                setInterval(() => takeSnapshot(), 1000);
+            }
+
+            function takeSnapshot() {
+                let context = canvas.getContext("2d");
+                let width = video.videoWidth;
+                let height = video.videoHeight;
+                let hasWidthAndHeight = width && height;
+                if (hasWidthAndHeight) {
+                    canvas.width = width;
+                    canvas.height = height;
+                    context.drawImage(video, 0, 0, width, height);
+                    classifyImage();
+                }
+            }
+
+            async function classifyImage() {
+                predictions = await model.classify(canvas);
+                displayPredictions(predictions);
+            }
+
+            function displayPredictions(predictions) {
+    let outputString = "";
+    let labels = [];
+    let data = [];
+    let groupedPredictions = {};
+    let mostProbablePrediction = null;
+
+    // Group predictions by probability and find the most probable prediction
+    predictions.forEach(prediction => {
+        const percent = (prediction.probability * 100).toFixed(2);
+        const label = prediction.className;
+
+        if (!groupedPredictions[percent]) {
+            groupedPredictions[percent] = [];
+        }
+
+        groupedPredictions[percent].push(label);
+
+        // Check for the most probable prediction
+        if (!mostProbablePrediction || prediction.probability > mostProbablePrediction.probability) {
+            mostProbablePrediction = prediction;
+        }
+    });
+
+    // Display the most probable prediction separately
+    if (mostProbablePrediction) {
+        document.getElementById("most-probable-prediction").textContent = `Probable object: ${mostProbablePrediction.className}`;
+    }
+
+    // Display predictions with grouped names
+    Object.keys(groupedPredictions).forEach(percent => {
+        const label = groupedPredictions[percent].join(', '); // Concatenate names
+        outputString += `${percent}% | ${label}\n`;
+        labels.push(label);
+        data.push(parseFloat(percent));
+    });
+
+    predictionsText.innerHTML = outputString;
+
+    if (chart) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = data;
+        chart.update();
+    } else {
+        chart = new Chart(document.getElementById("chart"), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Probability',
+                    data: data,
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Probability (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Class Name'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+
+        }
+    </script>
+</body>
+</html>

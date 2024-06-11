@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Underwater Vehichle</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/2e160f2d97.js" crossorigin="anonymous"></script>
+</head>
+<body>
+   <div id="header">
+    <div class="container">
+        <nav>
+            <img src="images/logo.png" class="logo">
+            <ul id="sidemenu">
+                <li><a href="#header">Home</a></li>
+                <li><a href="#about">Project-overview</a></li>
+                
+                <li><a href="#portfolio">Object-detection</a></li>
+                <li><a href="./index1.html">Simulator</a></li>
+
+                <li><a href="#contact">Contact us</a></li>
+                <i class="fa-solid fa-xmark"onclick="closemenu()"></i>
+
+            </ul>
+            <i class="fa-solid fa-bars"onclick="openmenu()"></i>
+        </nav>
+        <div class="header-text">
+            <p>Hi there..!</p>
+            <h1>Welcome to our <span>A U V </span><br> object detection dashboard</h1>
+        </div>
+    </div>
+   </div> 
+    <!------------------about--------------------------------------------------->
+   <div id="about">
+    <div class="container">
+        <div class="row">
+            <div class="about-col-1">
+                <img src="images/user.png" >
+            </div>
+            <div class="about-col-2">
+                <h1 class="sub-title">About <span>our project</span></h1>
+                <p> Welcome to our project on real-time object detection using TensorFlow.js and MobileNet! Our project aims to demonstrate 
+                    the capabilities of machine learning in identifying objects in live video streams directly from the user's webcam. </p>
+                     <div class="tab-titles">
+                        <p class="tab-links active-link" onclick="opentab('skills')">how it works</p>
+                        <p class="tab-links"onclick="opentab('experience')">how to use ?</p>
+                        <p class="tab-links"onclick="opentab('education')">pre-requisites</p>
+                     </div>
+                     <div class="tab-contents active-tab" id="skills">
+
+                        <ul>
+                            <li><span>TensorFlow.js</span><br> TensorFlow.js is a library for training and deploying machine learning models on Node.js.</li><br>
+                            <li><span> MobileNet</span><br>Optimized for speed and efficiency while still maintaining high accuracy in image classification</li><br>
+                            <li><span>Object detection</span><br>Identify objects in live video streams directly from the user's webcam and prerecorded videos.</li>
+                            
+                        </ul>
+                     </div>
+                     <div class="tab-contents" id="experience">
+
+                        <ul>
+                            <li><span>step 1</span><br> connect your camera output from your AUV to pc via USB cable</li>
+                            <li><span>step 2</span><br> click on live detection and see our model working.</li>
+                            <li><span>step 3</span><br> if you have prerecorded video,click on the second option below </li>
+                            
+                            
+                        </ul>
+                     </div>
+                     <div class="tab-contents" id="education">
+
+                        <ul>
+                            <li><span>1</span><br> An active internet connection to your pc</li><br>
+                            <li><span>2</span><br>live video out from an AUV or prerecorded video</li><br>
+                            <li><span>3</span><br>A compatible browser and permissions to use your video for detection</li>
+                            
+                        </ul>
+                     </div>
+            </div>
+        </div>
+    </div>
+   </div>
+   <!-------------------------------------------Our detection project--------------------------------->
+   <div id="portfolio">
+    <div class="container">
+        <h1 class="sub-title">Object <span>detection</span></h1>
+        <div class="work-list">
+            <div class="work">
+                <img src="images/work-1.png">
+                <div class="layer"><a href="livedetection2.html">
+                    <h3><br> Live video</h3>
+                    <p>
+                        Connect your output camera from the AUV to your pc via USB cable 
+                        and click here to see live object detection </p></a>
+                </div>
+            </div>
+            <div class="work">
+                
+                <img src="images/work-2.png">
+                
+                <div class="layer"><a href="prerecordedsample.html">
+                    <h3><br>Prerecorded video</h3>
+                    <p>If you are having a prerecorded footage recorded by an AUV, click here 
+                        and select the file for object detection</p>
+                    </p></a>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+   </div>
+   <!-----------------------------------contACT----------------------------->
+   <div id="contact">
+    <div class="container">
+        <div class="row">
+            <div class="contact-left">
+                <h1 class="sub-title"><span>Contact us</span></h1>
+               
+            </div>
+            <div class="contact-right">
+                <form name="submit-to-google-sheet" onsubmit="return validateForm();">
+                    <input type="text" name="Name" placeholder="Your Name" pattern="[A-Za-z]+" required>
+                    <input type="email" id="email" name="email" placeholder="Your Email id" required>
+                    <textarea name="Message" rows="6" placeholder="Your Message"></textarea>
+                    <button type="submit" class="btn btn2">Submit</button>
+                </form>
+                <span id="msg"></span>
+            </div>
+            
+            <script>
+                function validateForm() {
+                    var emailInput = document.getElementById("email").value;
+            
+                    // Check if the email is valid using a regular expression
+                    var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+                    if (!emailRegex.test(emailInput)) {
+                        alert("Please enter a valid email address.");
+                        return false; // Prevent form submission
+                    }
+            
+                    // Other validation or form submission logic can be added here if needed.
+            
+                    return true; // Allow form submission
+                }
+            </script>
+            
+        </div>
+        
+    </div>
+    <div class="copyright">
+        <p>Copyright &copy; &nbsp;</i>&nbsp;Autonomous underwater project.&nbsp;<i class="fa-solid fa-shield-heart"></i></p>
+    </div>
+   </div>
+   <script>
+
+    var tablinks = document.getElementsByClassName("tab-links");
+    var tabcontents = document.getElementsByClassName("tab-contents");
+
+    function opentab(tabname){
+        for(tablink of tablinks){
+            tablink.classList.remove("active-link");
+        }
+        for(tabcontent of tabcontents){
+            tabcontent.classList.remove("active-tab");
+        }  
+        event.currentTarget.classList.add("active-link");
+        document.getElementById(tabname).classList.add("active-tab");
+    }
+   </script>
+   <script>
+    var sidemeu=document.getElementById("sidemenu");
+    function openmenu(){
+        sidemeu.style.right="0";
+
+    }
+    function closemenu(){
+        sidemeu.style.right="-200px";
+
+    }
+   </script>
+   <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwm1K6jwJHm0niYppgZ6yABhocfY4BdEOCDmnQ7lXlFO9pEBZug51vMWP8YcMaMKqn0eg/exec'
+    const form = document.forms['submit-to-google-sheet']
+    const msg = document.getElementById("msg") 
+  
+    form.addEventListener('submit', e => {
+      e.preventDefault()
+      fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+        .then(response => {
+            msg.innerHTML = "Message sent succesfully !"
+            setTimeout(function(){
+                msg.innerHTML = ""
+            },3000)
+            form.reset()
+        })
+        .catch(error => console.error('Error!', error.message))
+    })
+  </script>
+</body>
+</html>
