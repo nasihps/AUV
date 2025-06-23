@@ -18,6 +18,7 @@ The repository hosts a web-based dashboard for the AUV project. The dashboard pr
 - Object detection and classification of recorded footage.
 ## Website
 Visit our project website at https://nasihps.github.io/AUV/
+Visit our navigation repo at https://github.com/nasihps/AUV-Navigation
 ## Contributing
 We welcome contributions to enhance the AUV project dashboard. Please fork the repository and create a pull request with your changes.
 ## Contact
